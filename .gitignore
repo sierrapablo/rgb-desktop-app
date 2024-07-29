@@ -1,2 +1,5 @@
 # VSCode Configurations
 .vscode/
+
+# Compiler Configurations
+build/
