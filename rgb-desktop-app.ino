@@ -6,6 +6,7 @@
 
 
 #include <Adafruit_NeoPixel.h>
+#include <EEPROM.h>
 
 
 /* Define pins */
@@ -84,6 +85,11 @@ const int POT_REAR_CHROMATIC = A3;
 const int POT_INSIDE_INTENSITY = A4;
 const int POT_INSIDE_CHROMATIC = A5;
 
+bool ledState = true;
+unsigned long lastDebounceTime = 0;
+const unsigned long debounceDelay = 50;
+
+
 void setup() {
   // Initialize digital pin LED_BUILTIN as an output.
   pinMode(LED_ON_OFF, OUTPUT);
@@ -114,10 +120,84 @@ void setup() {
   insideStrip.show();
   gpuStrip.show();
 
+  ledState = EEPROM.read(0);
+
 }
 
 
-void loop()
-{
-	
+void loop() {
+  int buttonState = digitalRead(BUTTON_ON_OFF);
+  if (buttonState == HIGH) {
+    if (millis() - lastDebounceTime > debounceDelay) {
+      ledState = !ledState;
+      EEPROM.write(0, ledState);
+      lastDebounceTime = millis();
+    }
+  }
+
+  if (ledState) {
+    int frontIntensity = analogRead(POT_FRONT_INTENSITY) / 4;
+    int frontColor = analogRead(POT_FRONT_CHROMATIC);
+    int rearIntensity = analogRead(POT_REAR_INTENSITY) / 4;
+    int rearColor = analogRead(POT_REAR_CHROMATIC);
+    int insideIntensity = analogRead(POT_INSIDE_INTENSITY) / 4;
+    int insideColor = analogRead(POT_INSIDE_CHROMATIC);
+
+    setStripColor(frontBottomFan, frontIntensity, frontColor);
+    setStripColor(frontMidFan, frontIntensity, frontColor);
+    setStripColor(frontTopFan, frontIntensity, frontColor);
+
+    setStripColor(rearFan, rearIntensity, rearColor);
+    setStripColor(topFrontFan, rearIntensity, rearColor);
+    setStripColor(topBackFan, rearIntensity, rearColor);
+
+    setStripColor(insideStrip, insideIntensity, insideColor);
+    setStripColor(gpuStrip, insideIntensity, insideColor);
+  } else {
+    frontBottomFan.clear();
+    frontMidFan.clear();
+    frontTopFan.clear();
+    rearFan.clear();
+    topFrontFan.clear();
+    topBackFan.clear();
+    insideStrip.clear();
+    gpuStrip.clear();
+
+    frontBottomFan.show();
+    frontMidFan.show();
+    frontTopFan.show();
+    rearFan.show();
+    topFrontFan.show();
+    topBackFan.show();
+    insideStrip.show();
+    gpuStrip.show();
+  }
+}
+
+
+void setStripColor(Adafruit_NeoPixel& strip, int intensity, int chromatic) {
+  // Map potentiometer value to color wheel
+  uint32_t color = wheel(chromatic % 1024);
+  for (int i = 0; i < strip.numPixels(); i++) {
+    strip.setPixelColor(i, strip.Color(
+      (intensity * (color >> 16 & 0xFF)) / 255,
+      (intensity * (color >> 8 & 0xFF)) / 255,
+      (intensity * (color & 0xFF)) / 255
+    ));
+  }
+  strip.show();
+}
+
+
+uint32_t wheel(int pos) {
+  pos = 1023 - pos;
+  if (pos < 341) {
+    return (255 - pos * 255 / 341) << 16 | (pos * 255 / 341) << 8;
+  } else if (pos < 682) {
+    pos -= 341;
+    return (255 - pos * 255 / 341) << 8 | pos * 255 / 341;
+  } else {
+    pos -= 682;
+    return (pos * 255 / 341) << 16 | (255 - pos * 255 / 341);
+  }
 }
