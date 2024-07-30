@@ -133,10 +133,17 @@ void setup() {
   insideStrip.show();
   gpuStrip.show();
 
+  // Array to store the addresses in EEPROM
+  int states[3] = {1, 2, 3};
+  int* statePointers[3] = {
+    &frontModeState, &rearModeState, &insideModeState
+  };
+
+  // Read values from EEPROM
   ledState = EEPROM.read(0);
-  frontModeState = EEPROM.read(1);
-  rearModeState = EEPROM.read(2);
-  insideModeState = EEPROM.read(3);
+  for (int i = 0; i < 4; i++) {
+    *statePointers[i] = EEPROM.read(states[i]);
+  }
 
 }
 
