@@ -134,7 +134,7 @@ void setup() {
   gpuStrip.show();
 
   // Array to store the addresses in EEPROM
-  int states[3] = {1, 2, 3};
+  int states[4] = {1, 2, 3, 4};
   int* statePointers[3] = {
     &frontModeState, &rearModeState, &insideModeState
   };
