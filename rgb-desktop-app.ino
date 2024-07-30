@@ -85,7 +85,12 @@ const int POT_REAR_CHROMATIC = A3;
 const int POT_INSIDE_INTENSITY = A4;
 const int POT_INSIDE_CHROMATIC = A5;
 
+// Default configurations for memory
 bool ledState = true;
+int frontModeState = 1;
+int rearModeState = 1;
+int insideModeState = 1;
+
 unsigned long lastDebounceTime = 0;
 const unsigned long debounceDelay = 50;
 
@@ -121,6 +126,9 @@ void setup() {
   gpuStrip.show();
 
   ledState = EEPROM.read(0);
+  frontModeState = EEPROM.read(1);
+  rearModeState = EEPROM.read(2);
+  insideModeState = EEPROM.read(3);
 
 }
 
@@ -134,6 +142,10 @@ void loop() {
       lastDebounceTime = millis();
     }
   }
+
+  handleButton(BUTTON_FRONT, frontModeState, 1);
+  handleButton(BUTTON_REAR, rearModeState, 2);
+  handleButton(BUTTON_INSIDE, insideModeState, 3);
 
   if (ledState) {
     int frontIntensity = analogRead(POT_FRONT_INTENSITY) / 4;
@@ -171,6 +183,21 @@ void loop() {
     topBackFan.show();
     insideStrip.show();
     gpuStrip.show();
+  }
+}
+
+
+void handleButton(int buttonPin, int &modeState, int eepromAddress) {
+  int buttonState = digitalRead(buttonPin);
+  if (buttonState == HIGH) {
+    if (millis() - lastDebounceTime > debounceDelay) {
+      modeState++;
+      if (modeState > 4) {
+        modeState = 0;
+      }
+      EEPROM.write(eepromAddress, modeState);
+      lastDebounceTime = millis();
+    }
   }
 }
 
