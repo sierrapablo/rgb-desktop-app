@@ -86,6 +86,14 @@ const int POT_INSIDE_INTENSITY = A4;
 const int POT_INSIDE_CHROMATIC = A5;
 
 // Default configurations for memory
+/*
+ * ledState -> boolean. Controls if the LEDs are ON/OFF
+ * (front/rear/inside)ModeState -> int (1-4). Controls different modes:
+ * 1: Static
+ * 2: Pulse
+ * 3: "Knight Rider"
+ * 4: Industrial Cracked
+ */
 bool ledState = true;
 int frontModeState = 1;
 int rearModeState = 1;
@@ -193,7 +201,7 @@ void handleButton(int buttonPin, int &modeState, int eepromAddress) {
     if (millis() - lastDebounceTime > debounceDelay) {
       modeState++;
       if (modeState > 4) {
-        modeState = 0;
+        modeState = 1;
       }
       EEPROM.write(eepromAddress, modeState);
       lastDebounceTime = millis();
