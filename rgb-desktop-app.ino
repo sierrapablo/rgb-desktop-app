@@ -18,26 +18,32 @@ void setup() {
 }
 
 void loop() {
-  // Parpadeo aleatorio en todos los LEDs
-  randomBlink();
+  // Hacer la transición de colores LED a LED
+  colorWheel();
 }
 
-void randomBlink() {
-  // Aleatorizar la duración del encendido y apagado
-  int onTime = random(200, 2500);   // Duración aleatoria entre 50 y 200 ms
-  int offTime = random(200, 1000);  // Duración aleatoria entre 50 y 200 ms
-  
-  // Encender todos los LEDs en blanco
-  for(int i = 0; i < NUM_LEDS; i++) {
-    strip.setPixelColor(i, strip.Color(255, 250, 200));
+void colorWheel() {
+  // Recorrer 256 valores para crear una rueda cromática completa
+  for (int j = 0; j < 256; j++) {
+    for (int i = 0; i < NUM_LEDS; i++) {
+      // Calcular el color basado en la posición en la rueda
+      strip.setPixelColor(i, wheel((i * 256 / NUM_LEDS + j) & 255));
+    }
+    strip.show();
+    delay(20);  // Ajustar la velocidad de la transición
   }
-  strip.show();
-  delay(onTime);
-  
-  // Apagar todos los LEDs
-  for(int i = 0; i < NUM_LEDS; i++) {
-    strip.setPixelColor(i, strip.Color(0, 0, 0));
+}
+
+// Función para generar colores en una rueda cromática
+uint32_t wheel(byte wheelPos) {
+  wheelPos = 255 - wheelPos;
+  if (wheelPos < 85) {
+    return strip.Color(255 - wheelPos * 3, 0, wheelPos * 3);
   }
-  strip.show();
-  delay(offTime);
+  if (wheelPos < 170) {
+    wheelPos -= 85;
+    return strip.Color(0, wheelPos * 3, 255 - wheelPos * 3);
+  }
+  wheelPos -= 170;
+  return strip.Color(wheelPos * 3, 255 - wheelPos * 3, 0);
 }
